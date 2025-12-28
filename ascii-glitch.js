@@ -2,40 +2,43 @@ window.initASCIIAnimation = function (element, options = {}) {
     if (!element) return;
 
     const config = {
-        activeColor: options.activeColor || "#fff",
-        rippleRadius: options.rippleRadius || 50,
-        glitchDuration: options.glitchDuration || 1000,
+        activeColor: "#fff",
+        rippleRadius: 25, // px
+        rippleDuration: 500, // ms
+        glitchDuration: 1000, // ms
         maxGlitchIterations: 4,
         glitchSpeed: 120, // ms
         glitchChars: "!@#$%^&*()_+:,.?/~`|",
-        enableRandomGlitch: options.enableRandomGlitch !== undefined ? options.enableRandomGlitch : true,
-        randomGlitchInterval: options.randomGlitchInterval || 240, // ms
-        randomGlitchChance: options.randomGlitchChance || 0.5,
+        enableRandomGlitch: true,
+        randomGlitchInterval: 120, // ms
+        randomGlitchChance: 0.1,
+        randomGlitchRippleDivisor: 1.2,
+        randomGlitchFollowDelay: 80, // ms
         ...options,
     };
 
     const originalText = options.text || element.textContent;
+    const cleanups = [];
+    const allWrappers = [];
 
     element.innerHTML = "";
 
-    const lines = originalText.split("\n");
-    const allWrappers = [];
-
-    lines.forEach((line) => {
+    originalText.split("\n").forEach((line) => {
         const lineDiv = document.createElement("div");
         lineDiv.style.whiteSpace = "pre";
-        lineDiv.style.whiteSpace = "pre";
 
-        const chars = line.split("");
-        chars.forEach((char) => {
+        line.split("").forEach((char) => {
             const wrapper = document.createElement("span");
-            wrapper.className = "char-wrapper";
-            wrapper.style.display = "inline-block";
-            wrapper.style.verticalAlign = "bottom";
-            wrapper.style.whiteSpace = "pre";
-            wrapper.style.textAlign = "center";
-
             const charSpan = document.createElement("span");
+
+            Object.assign(wrapper.style, {
+                display: "inline-block",
+                verticalAlign: "bottom",
+                whiteSpace: "pre",
+                textAlign: "center"
+            });
+            wrapper.className = "char-wrapper";
+
             charSpan.className = "char";
             charSpan.dataset.original = char;
             charSpan.textContent = char;
@@ -50,18 +53,19 @@ window.initASCIIAnimation = function (element, options = {}) {
 
     requestAnimationFrame(() => {
         const fontSize = parseFloat(window.getComputedStyle(element).fontSize);
-
         allWrappers.forEach((wrapper) => {
             const rect = wrapper.getBoundingClientRect();
-            wrapper.style.width = `${rect.width / fontSize}em`;
-            wrapper.style.height = `${rect.height / fontSize}em`;
-            wrapper.style.overflow = "hidden";
+            Object.assign(wrapper.style, {
+                width: `${rect.width / fontSize}em`,
+                height: `${rect.height / fontSize}em`,
+                overflow: "hidden"
+            });
         });
     });
 
-    const wrappedChars = element.querySelectorAll(".char");
+    const wrappedChars = Array.from(element.querySelectorAll(".char"));
 
-    function simpleGlitch(charElement) {
+    const simpleGlitch = (charElement) => {
         if (charElement.isGlitching) return;
         charElement.isGlitching = true;
 
@@ -72,17 +76,12 @@ window.initASCIIAnimation = function (element, options = {}) {
             if (originalChar === " " || originalChar === "⠀") {
                 charElement.textContent = originalChar;
             } else {
-                charElement.textContent =
-                    config.glitchChars[
-                        Math.floor(Math.random() * config.glitchChars.length)
-                        ];
+                charElement.textContent = config.glitchChars[Math.floor(Math.random() * config.glitchChars.length)];
                 charElement.style.color = config.activeColor;
                 charElement.style.fontWeight = "bold";
             }
 
-            iterations++;
-
-            if (iterations >= config.maxGlitchIterations) {
+            if (++iterations >= config.maxGlitchIterations) {
                 clearInterval(interval);
                 charElement.textContent = originalChar;
                 charElement.style.color = "";
@@ -90,90 +89,60 @@ window.initASCIIAnimation = function (element, options = {}) {
                 charElement.isGlitching = false;
             }
         }, config.glitchSpeed);
-    }
+    };
 
-    function findNearbyChars(sourceChar, radius) {
+    const findNearbyChars = (sourceChar, radius) => {
         const sourceRect = sourceChar.getBoundingClientRect();
         const sourceCenter = {
             x: sourceRect.left + sourceRect.width / 2,
             y: sourceRect.top + sourceRect.height / 2,
         };
 
-        const nearby = [];
-        wrappedChars.forEach((char) => {
-            if (char === sourceChar) return;
-            const rect = char.getBoundingClientRect();
-            if (Math.abs(rect.top - sourceCenter.y) > radius) return;
-            if (Math.abs(rect.left - sourceCenter.x) > radius) return;
-
-            const center = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2,
-            };
-            const distance = Math.sqrt(
-                Math.pow(center.x - sourceCenter.x, 2) +
-                Math.pow(center.y - sourceCenter.y, 2),
-            );
-            if (distance <= radius) {
-                nearby.push({char, distance});
-            }
-        });
-
-        return nearby
+        return wrappedChars
+            .filter(char => char !== sourceChar)
+            .map(char => {
+                const rect = char.getBoundingClientRect();
+                const center = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                };
+                const distance = Math.sqrt(
+                    Math.pow(center.x - sourceCenter.x, 2) +
+                    Math.pow(center.y - sourceCenter.y, 2)
+                );
+                return {char, distance};
+            })
+            .filter(item => item.distance <= radius)
             .sort((a, b) => a.distance - b.distance)
-            .map((item) => item.char);
-    }
-
-    const cleanupParams = [];
+            .map(item => item.char);
+    };
 
     wrappedChars.forEach((char) => {
         const handleMouseEnter = () => {
             simpleGlitch(char);
-
             const nearby = findNearbyChars(char, config.rippleRadius);
             nearby.forEach((nearChar, i) => {
-                setTimeout(
-                    () => {
-                        simpleGlitch(nearChar);
-                    },
-                    i * (500 / (nearby.length || 1)),
-                ); // distribute ripple over 500ms
+                setTimeout(() => simpleGlitch(nearChar), i * (config.rippleDuration / (nearby.length || 1)));
             });
         };
 
         char.addEventListener("mouseenter", handleMouseEnter);
-        cleanupParams.push({char, listener: handleMouseEnter});
+        cleanups.push(() => char.removeEventListener("mouseenter", handleMouseEnter));
     });
 
     if (config.enableRandomGlitch) {
-        const randomGlitchIntervalId = setInterval(() => {
-            if (Math.random() < config.randomGlitchChance) {
-                if (wrappedChars.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * wrappedChars.length);
-                    const randomChar = wrappedChars[randomIndex];
-                    simpleGlitch(randomChar);
-                    
-                    const nearby = findNearbyChars(randomChar, config.rippleRadius / 2);
-                    nearby.forEach((nearChar, i) => {
-                        setTimeout(() => simpleGlitch(nearChar), i * 50);
-                    });
-                }
+        const intervalId = setInterval(() => {
+            if (Math.random() < config.randomGlitchChance && wrappedChars.length) {
+                const randomChar = wrappedChars[Math.floor(Math.random() * wrappedChars.length)];
+                simpleGlitch(randomChar);
+                findNearbyChars(randomChar, config.rippleRadius / config.randomGlitchRippleDivisor).forEach((nearChar, i) => {
+                    setTimeout(() => simpleGlitch(nearChar), i * config.randomGlitchFollowDelay);
+                });
             }
         }, config.randomGlitchInterval);
 
-        cleanupParams.push({
-            type: 'interval',
-            id: randomGlitchIntervalId
-        });
+        cleanups.push(() => clearInterval(intervalId));
     }
 
-    return () => {
-        cleanupParams.forEach((item) => {
-            if (item.type === 'interval') {
-                clearInterval(item.id);
-            } else {
-                item.char.removeEventListener("mouseenter", item.listener);
-            }
-        });
-    };
+    return () => cleanups.forEach(fn => fn());
 };
