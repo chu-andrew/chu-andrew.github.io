@@ -16,7 +16,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 25%;
+    margin-bottom: 10%;
 }
 
 #tree-art {
@@ -36,7 +36,7 @@ body {
     width: 100%;
 }
 
-#intro-text {
+#intro p {
     padding: 0 1em;
     text-align: justify;
 }
