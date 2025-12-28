@@ -8,6 +8,9 @@ window.initASCIIAnimation = function (element, options = {}) {
         maxGlitchIterations: 4,
         glitchSpeed: 120, // ms
         glitchChars: "!@#$%^&*()_+:,.?/~`|",
+        enableRandomGlitch: options.enableRandomGlitch !== undefined ? options.enableRandomGlitch : true,
+        randomGlitchInterval: options.randomGlitchInterval || 240, // ms
+        randomGlitchChance: options.randomGlitchChance || 0.5,
         ...options,
     };
 
@@ -142,9 +145,35 @@ window.initASCIIAnimation = function (element, options = {}) {
         cleanupParams.push({char, listener: handleMouseEnter});
     });
 
+    if (config.enableRandomGlitch) {
+        const randomGlitchIntervalId = setInterval(() => {
+            if (Math.random() < config.randomGlitchChance) {
+                if (wrappedChars.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * wrappedChars.length);
+                    const randomChar = wrappedChars[randomIndex];
+                    simpleGlitch(randomChar);
+                    
+                    const nearby = findNearbyChars(randomChar, config.rippleRadius / 2);
+                    nearby.forEach((nearChar, i) => {
+                        setTimeout(() => simpleGlitch(nearChar), i * 50);
+                    });
+                }
+            }
+        }, config.randomGlitchInterval);
+
+        cleanupParams.push({
+            type: 'interval',
+            id: randomGlitchIntervalId
+        });
+    }
+
     return () => {
-        cleanupParams.forEach(({char, listener}) => {
-            char.removeEventListener("mouseenter", listener);
+        cleanupParams.forEach((item) => {
+            if (item.type === 'interval') {
+                clearInterval(item.id);
+            } else {
+                item.char.removeEventListener("mouseenter", item.listener);
+            }
         });
     };
 };
