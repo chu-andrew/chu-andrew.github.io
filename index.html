@@ -47,6 +47,26 @@
             width: 100%;
             padding: 0 1em;
         }
+
+        #social-links {
+            margin-top: 2em;
+            display: flex;
+            gap: 1.5em;
+        }
+
+        .social-link {
+            text-decoration: none;
+            color: black;
+            position: relative;
+        }
+
+        .social-link::before {
+            content: "[ ";
+        }
+
+        .social-link::after {
+            content: " ]";
+        }
     </style>
 </head>
 
@@ -59,6 +79,12 @@
             Hello! I'm Andrew Chu, a student at Rice University studying computer science.
         </p>
     </section>
+
+    <nav id="social-links">
+        <a href="https://github.com/chu-andrew" class="social-link" target="_blank">GitHub</a>
+        <a href="https://linkedin.com/in/chu-andrew-h" class="social-link" target="_blank">LinkedIn</a>
+        <a href="mailto:andrewchu@rice.edu" class="social-link">Email</a>
+    </nav>
 </main>
 
 <script src="ascii-glitch.js"></script>
