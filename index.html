@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Andrew Chu</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 65ch;
+            margin: 0 auto;
+            padding-left: 1em;
+            padding-right: 1em;
+        }
+
+        #main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25%;
+        }
+
+        #tree-art {
+            font-family: "Courier New", monospace;
+            white-space: pre;
+            justify-self: center;
+        }
+
+        @media (max-width: 600px) {
+            #tree-art {
+                font-size: 2.5vw;
+            }
+        }
+
+        #intro {
+            text-align: justify;
+            width: 100%;
+            padding: 0 1em;
+        }
+    </style>
+</head>
+
+<body>
+<main id="main">
+    <p id="tree-art"></p>
+
+    <section id="intro">
+        <p>
+            Hello! I'm Andrew Chu, a student at Rice University studying computer science.
+        </p>
+    </section>
+</main>
+
+<script src="ascii-glitch.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const treeElement = document.getElementById('tree-art');
+        const treeArt = `
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⣦⣤⣴⣦⣀⡀⢀⣀⣾⣿⣿⣿⣿⣿⣷⣦⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣾⣿⣿⣿⣿⣿⣿⣶⣦⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣦⣴⣿⣿⣽⣿⣿⣿⣿⣻⣿⣿⣿⣿⣛⣶⣤⣉⠻⠟⠛⠛⣿⣿⣿⣿⣿⣿⣿⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⣼⣿⣿⣿⡿⠿⣿⣿⣿⣿⠯⣉⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣿⠂⢐⢒⣻⣿⣿⣿⣿⣿⣿⣇⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠰⣿⣿⣿⣿⣿⣿⣛⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⣟⣻⣿⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⣿⣋⣹⣿⣿⣿⣿⣿⣿⣶⣷⣶⣿⣿⣿⣻⣿⣿⣿⣦⣀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢀⣀⣬⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⣛⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣿⣿⣿⣾⣿⣿⣿⣿⣇⡀⠀⠀⠀⠀
+⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣋⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣽⣿⣿⣿⣿⣿⣅⡀⠀⠀⠀
+⠀⣀⣀⣤⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣏⠀⠀
+⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠆
+⠹⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢛⣬⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷
+⠀⠀⠀⢹⠟⢛⣿⣹⢿⣿⠿⣬⣻⡋⢹⣿⣿⣿⣿⣿⣿⣿⡋⢿⣿⡙⣿⣿⣿⣿⣿⣿⣿⡿⠟⠛⣿⠛⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠉⠁
+⠀⠀⠀⠀⠀⠈⠉⠀⠀⠉⠀⠀⠈⠉⠛⠻⢿⡿⠛⠛⠋⠙⠻⢾⣿⣿⣿⢉⣿⡏⠀⠉⠋⠀⠀⠀⠙⣷⣾⣿⡿⠟⢿⣿⡿⠻⠿⡿⠟⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⢻⣿⣷⡿⠋⠀⠀⠀⠀⠀⠀⠀⠈⠛⠛⠛⠃⠀⠀⠈⠁⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣤⣾⣿⣿⣦⣄⣀⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`;
+
+        if (treeElement && window.initASCIIAnimation) {
+            window.initASCIIAnimation(treeElement, {
+                text: treeArt,
+                rippleRadius: 25,
+                activeColor: 'darkgreen'
+            });
+        }
+    });
+</script>
+</body>
+
+</html>
