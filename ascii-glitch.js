@@ -62,8 +62,6 @@ window.initASCIIAnimation = function (element, options = {}) {
         if (charElement.isGlitching) return;
         charElement.isGlitching = true;
 
-        charElement.style.color = config.activeColor;
-
         const originalChar = charElement.dataset.original;
         let iterations = 0;
 
@@ -75,6 +73,8 @@ window.initASCIIAnimation = function (element, options = {}) {
                     config.glitchChars[
                         Math.floor(Math.random() * config.glitchChars.length)
                         ];
+                charElement.style.color = config.activeColor;
+                charElement.style.fontWeight = "bold";
             }
 
             iterations++;
@@ -82,7 +82,8 @@ window.initASCIIAnimation = function (element, options = {}) {
             if (iterations >= config.maxGlitchIterations) {
                 clearInterval(interval);
                 charElement.textContent = originalChar;
-                charElement.style.color = ""; // revert to inherited
+                charElement.style.color = "";
+                charElement.style.fontWeight = "";
                 charElement.isGlitching = false;
             }
         }, config.glitchSpeed);
