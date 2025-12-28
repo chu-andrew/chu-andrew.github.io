@@ -1,63 +1,66 @@
 html,
 body {
-  height: 100%;
+    height: 100%;
 }
 
 body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 65ch;
-  margin: 0 auto;
-  padding-left: 1em;
-  padding-right: 1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+    padding-left: 1em;
+    padding-right: 1em;
 }
 
 #main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 25%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 25%;
 }
 
 #tree-art {
-  font-family: "Courier New", monospace;
-  white-space: pre;
-  justify-self: center;
+    font-family: "Courier New", monospace;
+    white-space: pre;
+    justify-self: center;
 }
 
 @media (max-width: 600px) {
-  #tree-art {
-    font-size: 2.5vw;
-  }
+    #tree-art {
+        font-size: 2.5vw;
+    }
 }
 
 #intro {
-  text-align: justify;
-  width: 100%;
-  padding: 0 1em;
+    justify-items: center;
+    width: 100%;
+}
+
+#intro-text {
+    padding: 0 1em;
+    text-align: justify;
 }
 
 #social-links {
-  margin-top: 2em;
-  display: flex;
-  gap: 1.5em;
+    margin-top: 2em;
+    display: flex;
+    gap: 1.5em;
 }
 
 .social-link {
-  text-decoration: none;
-  color: black;
-  position: relative;
+    text-decoration: none;
+    color: black;
+    position: relative;
 }
 
 .social-link::before {
-  content: "[ ";
+    content: "[ ";
 }
 
 .social-link::after {
-  content: " ]";
+    content: " ]";
 }
 
 .social-link:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
