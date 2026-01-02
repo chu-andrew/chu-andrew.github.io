@@ -62,6 +62,6 @@ body {
     content: " ]";
 }
 
-.social-link:hover {
+.social-link span:hover {
     text-decoration: underline;
 }
