@@ -65,3 +65,14 @@ body {
 .social-link span:hover {
     text-decoration: underline;
 }
+
+.separator {
+    border: none;
+}
+
+.separator::before {
+    content: "...";
+    font-weight: bold;
+    letter-spacing: 0.25em;
+    padding-left: 0.25em;
+}
