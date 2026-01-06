@@ -29,6 +29,11 @@ window.initASCIIAnimation = function (element, options = {}) {
         lineDiv.style.whiteSpace = "pre";
 
         line.split("").forEach((char) => {
+            if (char === " " || char === "\u2800") {
+                lineDiv.appendChild(document.createTextNode(char));
+                return;
+            }
+
             const wrapper = document.createElement("span");
             const charSpan = document.createElement("span");
 
@@ -74,13 +79,9 @@ window.initASCIIAnimation = function (element, options = {}) {
         let iterations = 0;
 
         const interval = setInterval(() => {
-            if (originalChar === " " || originalChar === "⠀") {
-                charElement.textContent = originalChar;
-            } else {
-                charElement.textContent = config.glitchChars[Math.floor(Math.random() * config.glitchChars.length)];
-                charElement.style.color = config.activeColor;
-                charElement.style.fontWeight = "bold";
-            }
+            charElement.textContent = config.glitchChars[Math.floor(Math.random() * config.glitchChars.length)];
+            charElement.style.color = config.activeColor;
+            charElement.style.fontWeight = "bold";
 
             if (++iterations >= config.maxGlitchIterations) {
                 clearInterval(interval);
