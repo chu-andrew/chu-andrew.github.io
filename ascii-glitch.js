@@ -21,6 +21,7 @@ window.initASCIIAnimation = function (element, options = {}) {
     const cleanups = [];
     const allWrappers = [];
 
+    const shadow = element.attachShadow({mode: "closed"});
     element.innerHTML = "";
 
     originalText.split("\n").forEach((line) => {
@@ -48,7 +49,7 @@ window.initASCIIAnimation = function (element, options = {}) {
             allWrappers.push(wrapper);
         });
 
-        element.appendChild(lineDiv);
+        shadow.appendChild(lineDiv);
     });
 
     requestAnimationFrame(() => {
@@ -63,7 +64,7 @@ window.initASCIIAnimation = function (element, options = {}) {
         });
     });
 
-    const wrappedChars = Array.from(element.querySelectorAll(".char"));
+    const wrappedChars = Array.from(shadow.querySelectorAll(".char"));
 
     const simpleGlitch = (charElement) => {
         if (charElement.isGlitching) return;
