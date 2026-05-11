@@ -11,25 +11,24 @@ window.growBonsai = function (element, options = {}) {
   probe.style.cssText =
     "position:absolute;visibility:hidden;white-space:pre;" +
     'font-family:"Courier New",monospace;font-size:16px;font-weight:bold';
-  probe.textContent = "x".repeat(80);
+  probe.textContent = "x".repeat(120);
   document.body.appendChild(probe);
-  const charWidth = probe.getBoundingClientRect().width / 80;
+  const charWidth = probe.getBoundingClientRect().width / 120;
   document.body.removeChild(probe);
 
   const availWidth = element.getBoundingClientRect().width;
   const autoCols = Math.min(
-    80,
-    Math.max(30, Math.floor(availWidth / charWidth)),
+    120,
+    Math.max(50, Math.floor(availWidth / charWidth)),
   );
 
   const config = {
-    lifeStart: 32,
-    multiplier: 5,
-    leaves: ["&"],
+    lifeStart: 50,
+    leaves: ["&", "%", "#", "@", "*"],
     cols: autoCols,
-    rows: 24,
+    rows: 40,
     seed: null,
-    msPerStep: 4,
+    msPerStep: 3,
     ...options,
   };
 
@@ -47,154 +46,162 @@ window.growBonsai = function (element, options = {}) {
     return rng % n;
   }
 
-  const TRUNK = 0,
-    SHOOT_LEFT = 1,
-    SHOOT_RIGHT = 2,
-    DYING = 3,
-    DEAD = 4;
+  const WOOD_LIGHT = "#8D6E63";
+  const WOOD_DARK = "#4E342E";
+  const LEAF_LIGHT = "#66BB6A";
+  const LEAF_DARK = "#2E7D32";
+  const MOSS_COLOR = "#8B9B6A";
 
-  const WOOD_BRIGHT = "#CD853F",
-    WOOD_DARK = "#8B4513",
-    LEAF_BRIGHT = "#66BB6A",
-    LEAF_DARK = "#2E7D32";
-
-  // Phase 1: collect draw events without touching the DOM
   const events = [];
   function setCell(y, x, char, color) {
     if (y >= 0 && y < config.rows && x >= 0 && x < config.cols)
       events.push({ y, x, char, color });
   }
 
-  function getColor(type) {
-    switch (type) {
-      case TRUNK:
-      case SHOOT_LEFT:
-      case SHOOT_RIGHT:
-        return rand(2) === 0 ? WOOD_BRIGHT : WOOD_DARK;
-      case DYING:
-        return LEAF_BRIGHT;
-      case DEAD:
-        return rand(3) === 0 ? LEAF_BRIGHT : LEAF_DARK;
+  // Height ceiling scales with width so the tree keeps a sane aspect ratio
+  // when cols shrinks on mobile. Set inside generateOak() once splitY is known.
+  let minBranchY = 0;
+
+  function generateOak() {
+    const startY = config.rows - 2;
+    const startX = Math.floor(config.cols / 2);
+    const maxCanopyHeight = Math.floor(config.cols * 0.45);
+
+    const minGrassX = Math.floor(config.cols * 0.25);
+    const maxGrassX = Math.floor(config.cols * 0.75);
+
+    for (let x = minGrassX; x <= maxGrassX; x++) {
+      // Skip grass tufts directly under the trunk so the base connects solidly
+      const isUnderTrunk = x >= startX - 3 && x <= startX + 3;
+      const g1 = rand(4) === 0 && !isUnderTrunk ? '"' : "_";
+      const g2 = rand(3) === 0 ? "~" : "-";
+
+      setCell(config.rows - 2, x, g1, LEAF_DARK);
+      setCell(config.rows - 1, x, g2, LEAF_DARK);
     }
+
+    const trunkHeight = 4 + rand(4);
+    for (let i = 0; i < trunkHeight; i++) {
+      const width = i === 0 ? 3 : i < 2 ? 2 : 1;
+      for (let w = -width; w <= width; w++) {
+        let char = "|";
+        if (i === 0) {
+          if (w === -width) char = "/";
+          else if (w === width) char = "\\";
+          else char = "_";
+        }
+        setCell(
+          startY - i,
+          startX + w,
+          char,
+          rand(3) === 0 ? WOOD_LIGHT : WOOD_DARK,
+        );
+      }
+    }
+
+    const splitY = startY - trunkHeight;
+    minBranchY = splitY - maxCanopyHeight;
+
+    growLimb(splitY, startX - 2, -1.8, config.lifeStart, 0);
+    growLimb(splitY + 1, startX - 1, -1.2, config.lifeStart * 0.85, 0.2);
+
+    growLimb(splitY, startX + 2, 1.8, config.lifeStart, 0);
+    growLimb(splitY + 1, startX + 1, 1.2, config.lifeStart * 0.85, 0.2);
+
+    growLimb(splitY, startX, (rand(3) - 1) * 0.5, config.lifeStart * 0.5, 0.6);
+    growLimb(splitY, startX - 1, -0.5, config.lifeStart * 0.45, 0.5);
+    growLimb(splitY, startX + 1, 0.5, config.lifeStart * 0.45, 0.5);
   }
 
-  // Lookup tables for weighted dx/dy distributions (replaces nested ternaries)
-  const TRUNK_DX_MID = [-2, -1, -1, -1, -1, 0, 0, 1, 1, 2];
-  const SHOOT_DY = [-1, -1, 0, 0, 0, 0, 0, 0, 1, 1];
-  const SHOOT_DX_MAG = [2, 2, 1, 1, 1, 1, 0, 0, 0, -1];
-  const DYING_DY = [-1, -1, 0, 0, 0, 0, 0, 0, 0, 1];
-  const DYING_DX = [-3, -2, -2, -1, -1, -1, 0, 0, 0, 1, 1, 1, 2, 2, 3];
-  const DEAD_DY = [-1, -1, -1, 0, 0, 0, 0, 1, 1, 1];
+  function growLimb(y, x, dirX, life, verticality) {
+    let currentX = x;
+    let currentY = y;
+    let currentLife = life;
 
-  function setDeltas(type, life) {
-    const mult = config.multiplier;
-    const age = config.lifeStart - life;
-    let dx = 0,
-      dy = 0;
-    switch (type) {
-      case TRUNK:
-        if (age <= 2 || life < 4) {
-          dx = rand(3) - 1;
-        } else if (age < mult * 3) {
-          dy = age % Math.max(1, Math.floor(mult * 0.5)) === 0 ? -1 : 0;
-          dx = TRUNK_DX_MID[rand(10)];
+    while (currentLife > 0) {
+      currentLife--;
+
+      let dx = 0;
+      let dy = 0;
+      const agePhase = life - currentLife;
+
+      if (dirX < -1) dx = rand(10) > 2 ? -1 : 0;
+      else if (dirX > 1) dx = rand(10) > 2 ? 1 : 0;
+      else if (dirX < 0) dx = rand(10) > 4 ? -1 : 0;
+      else if (dirX > 0) dx = rand(10) > 4 ? 1 : 0;
+      else dx = rand(3) - 1;
+
+      // Boundary Repulsion: Prevent flat edges by curling branches inward
+      if (currentX < 6) {
+        dx = rand(3) === 0 ? 0 : 1;
+      } else if (currentX > config.cols - 7) {
+        dx = rand(3) === 0 ? 0 : -1;
+      }
+
+      if (verticality < 0.5) {
+        if (agePhase < life * 0.3) {
+          dy = rand(5) === 0 ? -1 : 0;
+        } else if (agePhase < life * 0.6) {
+          dy = rand(6) === 0 ? 1 : 0;
         } else {
-          dy = rand(10) > 2 ? -1 : 0;
-          dx = rand(3) - 1;
+          dy = rand(4) === 0 ? -1 : 0;
         }
-        break;
-      case SHOOT_LEFT:
-      case SHOOT_RIGHT: {
-        const sign = type === SHOOT_LEFT ? -1 : 1;
-        dy = SHOOT_DY[rand(10)];
-        dx = sign * SHOOT_DX_MAG[rand(10)];
-        break;
+      } else {
+        dy = rand(10) > (verticality > 0.8 ? 2 : 5) ? -1 : 0;
       }
-      case DYING:
-        dy = DYING_DY[rand(10)];
-        dx = DYING_DX[rand(15)];
-        break;
-      case DEAD:
-        dy = DEAD_DY[rand(10)];
-        dx = rand(3) - 1;
-        break;
-    }
-    return { dx, dy };
-  }
 
-  function chooseString(type, life, dx, dy) {
-    const t = life < 4 ? DYING : type;
-    if (t === TRUNK) {
-      if (dy === 0) return "/~";
-      if (dx < 0) return "\\|";
-      if (dx === 0) return "/|\\";
-      return "|/";
-    }
-    if (t === SHOOT_LEFT || t === SHOOT_RIGHT) {
-      const horiz = t === SHOOT_LEFT ? "\\_" : "_/";
-      const fall = t === SHOOT_LEFT ? "\\" : "/";
-      if (dy > 0) return fall;
-      if (dy === 0) return horiz;
-      if (dx < 0) return "\\|";
-      if (dx === 0) return "/|";
-      return "/";
-    }
-    return config.leaves[rand(config.leaves.length)];
-  }
+      // Cap canopy height: once at the ceiling, spread sideways instead of up
+      if (dy < 0 && currentY <= minBranchY) {
+        dy = 0;
+        if (dx === 0) dx = rand(2) === 0 ? -1 : 1;
+      }
 
-  let shootCounter = rand(2);
+      currentX += dx;
+      currentY += dy;
 
-  function branch(y, x, type, life) {
-    let shootCooldown = config.multiplier;
+      let char = dx < 0 ? "\\" : dx > 0 ? "/" : "|";
+      if (dy === 0 && dx !== 0) char = "_";
+      setCell(currentY, currentX, char, rand(3) === 0 ? WOOD_LIGHT : WOOD_DARK);
 
-    while (life > 0) {
-      life--;
+      if (currentLife > 10 && rand(12) === 0) {
+        const newDirX = dirX + (rand(3) - 1) * 0.5;
+        const newVert = verticality + 0.3;
+        growLimb(
+          currentY,
+          currentX,
+          newDirX,
+          currentLife * (0.5 + rand(3) * 0.1),
+          newVert,
+        );
+      }
 
-      const { dx, dy: rawDy } = setDeltas(type, life);
-      let dy = rawDy;
-      if (dy > 0 && y > config.rows - 2) dy--;
-
-      if (life < 3) {
-        branch(y, x, DEAD, life);
-      } else if (
-        (type === TRUNK || type === SHOOT_LEFT || type === SHOOT_RIGHT) &&
-        life < config.multiplier + 2
-      ) {
-        branch(y, x, DYING, life);
-      } else if (
-        type === TRUNK &&
-        (rand(3) === 0 || life % config.multiplier === 0)
-      ) {
-        if (rand(8) === 0 && life > 7) {
-          shootCooldown = config.multiplier * 2;
-          branch(y, x, TRUNK, life + (rand(5) - 2));
-        } else if (shootCooldown <= 0) {
-          shootCooldown = config.multiplier * 2;
-          shootCounter++;
-          branch(y, x, (shootCounter % 2) + 1, life + config.multiplier);
+      if (dy === 0 && dx !== 0 && rand(12) === 0 && currentLife > 5) {
+        const mossLength = 3 + rand(6);
+        for (let m = 0; m < mossLength; m++) {
+          const mChar = m === mossLength - 1 ? "." : rand(2) === 0 ? "|" : ":";
+          setCell(currentY + 1 + m, currentX, mChar, MOSS_COLOR);
         }
       }
-      shootCooldown--;
 
-      x += dx;
-      y += dy;
-
-      const color = getColor(type);
-      const str = chooseString(type, life, dx, dy);
-      for (let i = 0; i < str.length; i++) setCell(y, x + i, str[i], color);
+      if (currentLife < 8) {
+        for (let i = 0; i < 4; i++) {
+          const fy = currentY + (rand(5) - 2);
+          const fx = currentX + (rand(7) - 3);
+          const leafChar = config.leaves[rand(config.leaves.length)];
+          setCell(fy, fx, leafChar, rand(2) === 0 ? LEAF_LIGHT : LEAF_DARK);
+        }
+      }
     }
   }
 
-  branch(config.rows - 1, Math.floor(config.cols / 2), TRUNK, config.lifeStart);
+  generateOak();
 
-  // Trim empty rows from the top so the container height matches the actual tree
   const firstRow = events.reduce(
     (min, e) => Math.min(min, e.y),
     config.rows - 1,
   );
   const usedRows = config.rows - firstRow;
 
-  // Phase 2: build DOM (per-cell spans created once, mutated in place during animation)
   element.style.display = "flex";
   element.style.justifyContent = "flex-start";
   element.style.alignItems = "flex-end";
@@ -220,22 +227,6 @@ window.growBonsai = function (element, options = {}) {
     }
     inner.appendChild(div);
   }
-
-  const baseLines = [
-    ":___________./~~~\\.___________.:",
-    " \\                            / ",
-    "  \\__________________________/  ",
-    "  (_)                      (_)  ",
-  ];
-  const baseX = Math.max(
-    0,
-    Math.floor((config.cols - baseLines[0].length) / 2),
-  );
-  const baseEl = document.createElement("div");
-  baseEl.style.whiteSpace = "pre";
-  baseEl.style.color = WOOD_DARK;
-  baseEl.textContent = baseLines.map((l) => " ".repeat(baseX) + l).join("\n");
-  inner.appendChild(baseEl);
 
   let ei = 0;
   let lastTimestamp = null;
