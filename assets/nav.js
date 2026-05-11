@@ -23,15 +23,17 @@ async function navigate(url, push = true) {
   }
 }
 
-document.addEventListener("click", (e) => {
-  const a = e.target.closest("a");
-  if (!a || !a.href) return;
-  const url = new URL(a.href);
-  if (url.origin !== location.origin) return;
-  e.preventDefault();
-  navigate(url.pathname + url.search + url.hash);
-});
+if (location.protocol !== "file:") {
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (!a || !a.href) return;
+    const url = new URL(a.href);
+    if (url.origin !== location.origin) return;
+    e.preventDefault();
+    navigate(url.pathname + url.search + url.hash);
+  });
 
-window.addEventListener("popstate", () =>
-  navigate(location.pathname + location.search, false),
-);
+  window.addEventListener("popstate", () =>
+    navigate(location.pathname + location.search, false),
+  );
+}
