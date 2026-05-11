@@ -205,7 +205,10 @@ window.growBonsai = function (element, options = {}) {
   inner.style.width = `${Math.round(config.cols * charWidth)}px`;
   element.appendChild(inner);
 
-  const cellEls = Array.from({ length: usedRows }, () => new Array(config.cols));
+  const cellEls = Array.from(
+    { length: usedRows },
+    () => new Array(config.cols),
+  );
   for (let r = 0; r < usedRows; r++) {
     const div = document.createElement("div");
     div.style.whiteSpace = "pre";
@@ -224,7 +227,10 @@ window.growBonsai = function (element, options = {}) {
     "  \\__________________________/  ",
     "  (_)                      (_)  ",
   ];
-  const baseX = Math.max(0, Math.floor((config.cols - baseLines[0].length) / 2));
+  const baseX = Math.max(
+    0,
+    Math.floor((config.cols - baseLines[0].length) / 2),
+  );
   const baseEl = document.createElement("div");
   baseEl.style.whiteSpace = "pre";
   baseEl.style.color = WOOD_DARK;
