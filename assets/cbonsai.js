@@ -1,9 +1,9 @@
 window.growBonsai = function (element, options = {}) {
   if (!element) return;
 
-  // Set font before measuring so the probe uses the same face
+  const MIN_COLS = 50;
+
   element.style.fontFamily = '"Courier New", monospace';
-  element.style.fontSize = "16px";
   element.style.fontWeight = "bold";
   element.style.lineHeight = "1.2";
 
@@ -13,14 +13,15 @@ window.growBonsai = function (element, options = {}) {
     'font-family:"Courier New",monospace;font-size:16px;font-weight:bold';
   probe.textContent = "x".repeat(120);
   document.body.appendChild(probe);
-  const charWidth = probe.getBoundingClientRect().width / 120;
+  const charWidthAt16 = probe.getBoundingClientRect().width / 120;
   document.body.removeChild(probe);
 
   const availWidth = element.getBoundingClientRect().width;
-  const autoCols = Math.min(
-    120,
-    Math.max(50, Math.floor(availWidth / charWidth)),
-  );
+  const fontSize = availWidth >= MIN_COLS * charWidthAt16 ? 16 : Math.floor(availWidth / MIN_COLS);
+  const charWidth = charWidthAt16 * (fontSize / 16);
+  element.style.fontSize = fontSize + "px";
+
+  const autoCols = Math.min(120, Math.max(MIN_COLS, Math.floor(availWidth / charWidth)));
 
   const config = {
     lifeStart: 50,
