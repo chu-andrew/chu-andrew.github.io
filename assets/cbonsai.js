@@ -111,15 +111,15 @@ window.growBonsai = function (element, options = {}) {
     const splitY = startY - trunkHeight;
     minBranchY = splitY - maxCanopyHeight;
 
+    growLimb(splitY, startX, (rand(3) - 1) * 0.5, config.lifeStart * 0.5, 0.6);
+    growLimb(splitY, startX - 1, -0.5, config.lifeStart * 0.45, 0.5);
+    growLimb(splitY, startX + 1, 0.5, config.lifeStart * 0.45, 0.5);
+
     growLimb(splitY, startX - 2, -1.8, config.lifeStart, 0);
     growLimb(splitY + 1, startX - 1, -1.2, config.lifeStart * 0.85, 0.2);
 
     growLimb(splitY, startX + 2, 1.8, config.lifeStart, 0);
     growLimb(splitY + 1, startX + 1, 1.2, config.lifeStart * 0.85, 0.2);
-
-    growLimb(splitY, startX, (rand(3) - 1) * 0.5, config.lifeStart * 0.5, 0.6);
-    growLimb(splitY, startX - 1, -0.5, config.lifeStart * 0.45, 0.5);
-    growLimb(splitY, startX + 1, 0.5, config.lifeStart * 0.45, 0.5);
   }
 
   function growLimb(y, x, dirX, life, verticality) {
