@@ -1,7 +1,9 @@
 window.growBonsai = function (element, options = {}) {
   if (!element) return;
 
+  const FONT_SIZE = 16; // desktop-width size
   const MIN_COLS = 50;
+  const MAX_COLS = 120;
 
   element.style.fontFamily = '"Courier New", monospace';
   element.style.fontWeight = "bold";
@@ -10,18 +12,24 @@ window.growBonsai = function (element, options = {}) {
   const probe = document.createElement("span");
   probe.style.cssText =
     "position:absolute;visibility:hidden;white-space:pre;" +
-    'font-family:"Courier New",monospace;font-size:16px;font-weight:bold';
-  probe.textContent = "x".repeat(120);
+    `font-family:"Courier New",monospace;font-size:${FONT_SIZE}px;font-weight:bold`;
+  probe.textContent = "x".repeat(MAX_COLS);
   document.body.appendChild(probe);
-  const charWidthAt16 = probe.getBoundingClientRect().width / 120;
+  const charWidthAt16 = probe.getBoundingClientRect().width / MAX_COLS;
   document.body.removeChild(probe);
 
   const availWidth = element.getBoundingClientRect().width;
-  const fontSize = availWidth >= MIN_COLS * charWidthAt16 ? 16 : Math.floor(availWidth / MIN_COLS);
-  const charWidth = charWidthAt16 * (fontSize / 16);
+  const fontSize =
+    availWidth >= MIN_COLS * charWidthAt16
+      ? FONT_SIZE
+      : Math.floor(availWidth / MIN_COLS);
+  const charWidth = charWidthAt16 * (fontSize / FONT_SIZE);
   element.style.fontSize = fontSize + "px";
 
-  const autoCols = Math.min(120, Math.max(MIN_COLS, Math.floor(availWidth / charWidth)));
+  const autoCols = Math.min(
+    MAX_COLS,
+    Math.max(MIN_COLS, Math.floor(availWidth / charWidth)),
+  );
 
   const config = {
     lifeStart: 50,
@@ -165,6 +173,7 @@ window.growBonsai = function (element, options = {}) {
       setCell(currentY, currentX, char, rand(3) === 0 ? WOOD_LIGHT : WOOD_DARK);
 
       if (currentLife > 10 && rand(12) === 0) {
+        // only split if sub-branch has enough life to grow
         const newDirX = dirX + (rand(3) - 1) * 0.5;
         const newVert = verticality + 0.3;
         growLimb(
@@ -185,6 +194,7 @@ window.growBonsai = function (element, options = {}) {
       }
 
       if (currentLife < 8) {
+        // leaf burst at branch tips
         for (let i = 0; i < 4; i++) {
           const fy = currentY + (rand(5) - 2);
           const fx = currentX + (rand(7) - 3);
