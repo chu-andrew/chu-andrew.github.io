@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    # Group all astro-related updates together
+    groups:
+      astro-packages:
+        patterns:
+          - "@astrojs*"
+          - "astro"
+    versioning-strategy: lockfile-only
+    allow:
+      - dependency-type: "direct"
