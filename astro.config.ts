@@ -9,6 +9,6 @@ export default defineConfig({
   site: SITE_URL,
   integrations: [sitemap(), mdx()],
   markdown: {
-    shikiConfig: { theme: "css-variables" }
-  }
+    shikiConfig: { theme: "css-variables" },
+  },
 });

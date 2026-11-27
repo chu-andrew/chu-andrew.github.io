@@ -1,14 +1,12 @@
-export const SITE_TITLE = 'Euan Muir';
-export const SITE_DESCRIPTION = 'Notes from a beautiful place out in the country';
-export const SITE_URL = process.env.SITE_URL || 'https://example.com';
+export const SITE_TITLE = "Andrew Chu";
+export const SITE_URL = process.env.SITE_URL || "https://chu-andrew.github.io";
 
 export const PORTRAIT: { light: string; dark?: string } | undefined = {
-  light: '/portrait-light.webp',
-  dark: '/portrait-dark.webp',
+  light: "/portrait-wheat.webp",
 };
 
 export const LINKS = [
-  { label: 'Email', href: 'mailto:euan@example.com' },
-  { label: 'GitHub', href: 'https://github.com/' },
-  { label: 'Last.fm', href: 'https://www.last.fm/' },
+  { label: "Email", href: "mailto:andrewchu@rice.edu" },
+  { label: "GitHub", href: "https://github.com/chu-andrew" },
+  { label: "LinkedIn", href: "https://linkedin.com/in/~andrewchu" },
 ];

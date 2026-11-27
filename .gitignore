@@ -29,3 +29,6 @@ pnpm-debug.log*
 # astro and vercel
 .astro/
 .vercel/
+
+# source images
+public/*.jpg

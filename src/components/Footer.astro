@@ -4,9 +4,9 @@ import { LINKS } from '@/consts';
 
 <footer>
   <span>
-    [↗]: {LINKS.map(({ label, href }) => (
-      <><a target='_blank' rel='me' href={href}>{label}</a>, </>
-    ))}<a target='_blank' href='/rss.xml'>RSS</a>
+    [↗]: {LINKS.map(({ label, href }, i) => (
+      <>{i > 0 && ', '}<a target='_blank' rel='me' href={href}>{label}</a></>
+    ))}
   </span>
 </footer>
 

@@ -21,25 +21,21 @@
 }
 
 :root {
-  --color-sky: #e6effb;
-  --color-sky-medium: #d4e1f3;
-  --color-sky-gray: #526077;
-  --color-sky-ink: #142033;
-  --color-klein: #0a2675;
-  --color-klein-medium: #163488;
-  --color-klein-light: #1f3fa3;
-  --color-klein-gray: #aaa597;
-  --color-klein-white: #ddd8cc;
+  --color-evergreen: #05472a;
+  --color-evergreen-medium: darkslategray;
+  --color-evergreen-light: darkseagreen;
+  --color-evergreen-gray: wheat;
+  --color-evergreen-white: linen;
 }
 
 :root {
-  --theme-bg: light-dark(var(--color-sky), var(--color-klein));
-  --theme-text: light-dark(var(--color-sky-ink), var(--color-klein-white));
-  --theme-sub-text: light-dark(var(--color-sky-gray), var(--color-klein-gray));
+  --theme-bg: var(--color-evergreen);
+  --theme-text: var(--color-evergreen-white);
+  --theme-sub-text: var(--color-evergreen-gray);
   --theme-link-underline: var(--theme-sub-text);
-  --theme-code-block: light-dark(var(--color-sky-medium), var(--color-klein-medium));
+  --theme-code-block: var(--color-evergreen-medium);
 
-  color-scheme: light dark;
+  color-scheme: dark;
   color: var(--theme-text);
 
   font-family: "IBM Plex Mono", monospace;
@@ -52,7 +48,8 @@
 }
 
 ::selection {
-  background-color: light-dark(var(--color-sky-medium), var(--color-klein-light));
+  background-color: var(--color-evergreen-light);
+  color: var(--theme-bg);
 }
 
 code::selection,
@@ -69,10 +66,30 @@ code ::selection {
   navigation: auto;
 }
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.25s;
-  animation-timing-function: ease;
+@keyframes dither-in {
+  0% {
+    mask-image: conic-gradient(#000 25%, #0000 0);
+  }
+
+  33% {
+    mask-image: repeating-conic-gradient(#000 0 25%, #0000 0 50%);
+  }
+
+  67% {
+    mask-image: conic-gradient(#000 25%, #0000 0 50%, #000 0);
+  }
+}
+
+@media not (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root) {
+    animation: none;
+  }
+
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+    mask-size: 2px 2px;
+    animation: 0.18s step-end dither-in;
+  }
 }
 
 body {

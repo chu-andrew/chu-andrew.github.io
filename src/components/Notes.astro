@@ -5,6 +5,9 @@ const notes = await getNotes();
 const notesByYear = Map.groupBy(notes, (note) => note.data.pubDate.getUTCFullYear());
 ---
 
+{notes.length === 0 ? (
+  <p class="empty">No notes yet.</p>
+) : (
 <ul class="years">
   {[...notesByYear].map(([year, yearNotes]) => (
     <li>
@@ -19,6 +22,7 @@ const notesByYear = Map.groupBy(notes, (note) => note.data.pubDate.getUTCFullYea
     </li>
   ))}
 </ul>
+)}
 
 <style>
   ul {
@@ -35,6 +39,7 @@ const notesByYear = Map.groupBy(notes, (note) => note.data.pubDate.getUTCFullYea
     column-gap: 2ch;
   }
 
+  .empty,
   h3 {
     color: var(--theme-sub-text);
 
